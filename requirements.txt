@@ -1,0 +1,314 @@
+# ============================================================================
+# AGENTIC RESEARCH SYSTEM - COMPLETE REQUIREMENTS (CORRECTED)
+# ============================================================================
+# Version: 3.0.0
+# Python: >=3.9,<3.13
+# Last Updated: 2026-02-25
+# ============================================================================
+
+# ============================================================================
+# CORE DEPENDENCIES
+# ============================================================================
+
+# HTTP and Web Requests
+requests>=2.31.0,<3.0.0
+aiohttp>=3.9.3,<4.0.0
+httpx>=0.26.0,<1.0.0
+urllib3>=2.1.0,<3.0.0
+
+# HTML/XML Parsing
+beautifulsoup4>=4.12.3,<5.0.0
+lxml>=5.1.0,<6.0.0
+
+# Configuration and Data Formats
+pyyaml>=6.0.1,<7.0.0
+python-dotenv>=1.0.1,<2.0.0
+toml>=0.10.2,<1.0.0
+
+# ============================================================================
+# SEARCH SOURCES
+# ============================================================================
+
+# arXiv API
+arxiv>=2.1.0,<3.0.0
+
+# Google Scholar (scholarly)
+scholarly>=1.7.11,<2.0.0
+
+# DuckDuckGo Search - ✅ CORRECTED VERSION
+ddgs>=9.0.0,<10.0.0
+
+# ============================================================================
+# VECTOR STORE AND EMBEDDINGS
+# ============================================================================
+
+# ChromaDB Vector Database
+chromadb>=0.4.22,<0.5.0
+posthog>=2.4.0,<6.0.0
+
+# Sentence Transformers for Embeddings
+sentence-transformers>=2.3.1,<3.0.0
+
+# Transformers (required by sentence-transformers)
+transformers>=4.37.0,<5.0.0
+
+# PyTorch (required by sentence-transformers and transformers)
+# CPU version - for GPU, use: torch>=2.1.0+cu118
+torch>=2.1.0,<3.0.0
+
+# NumPy (required by many ML libraries)
+numpy>=1.24.0,<2.0.0
+
+# ============================================================================
+# LLM PROVIDERS
+# ============================================================================
+
+# OpenAI (for both OpenAI API and Ollama OpenAI-compatible API)
+openai>=1.12.0,<2.0.0
+
+# Anthropic (Claude)
+anthropic>=0.18.1,<1.0.0
+
+# Local LLM with llama.cpp
+llama-cpp-python>=0.2.55,<1.0.0
+
+# ============================================================================
+# PDF AND DOCUMENT PROCESSING
+# ============================================================================
+
+# PDF Reading
+PyPDF2>=3.0.1,<4.0.0
+pdfplumber>=0.10.3,<1.0.0
+pypdf>=4.0.0,<5.0.0
+
+# Document Processing
+python-docx>=1.1.0,<2.0.0
+python-pptx>=0.6.23,<1.0.0
+markdown>=3.5.2,<4.0.0
+
+# ============================================================================
+# DATA PROCESSING
+# ============================================================================
+
+# Data Analysis
+pandas>=2.2.0,<3.0.0
+
+# Excel Support
+openpyxl>=3.1.2,<4.0.0
+
+# ============================================================================
+# ASYNC AND CONCURRENCY
+# ============================================================================
+
+# Async I/O
+aiofiles>=23.2.1,<24.0.0
+
+# ============================================================================
+# SCHEDULING AND TASK MANAGEMENT
+# ============================================================================
+
+# Simple Scheduling
+schedule>=1.2.1,<2.0.0
+
+# Advanced Scheduling
+apscheduler>=3.10.4,<4.0.0
+
+# Cron Expression Parser
+croniter>=2.0.1,<3.0.0
+
+# ============================================================================
+# CLI AND PROGRESS
+# ============================================================================
+
+# Progress Bars
+tqdm>=4.66.1,<5.0.0
+
+# Rich Terminal Output
+rich>=13.7.0,<14.0.0
+
+# CLI Framework
+click>=8.1.7,<9.0.0
+
+# Interactive Prompts
+prompt-toolkit>=3.0.43,<4.0.0
+
+# ============================================================================
+# LOGGING AND MONITORING
+# ============================================================================
+
+# Advanced Logging
+loguru>=0.7.2,<1.0.0
+
+# Colored Logs
+colorlog>=6.8.2,<7.0.0
+
+# ============================================================================
+# CACHING
+# ============================================================================
+
+# Disk Cache
+diskcache>=5.6.3,<6.0.0
+
+# Redis Cache (Optional)
+redis>=5.0.1,<6.0.0
+hiredis>=2.3.2,<3.0.0
+
+# ============================================================================
+# RATE LIMITING
+# ============================================================================
+
+# Rate Limiting
+ratelimit>=2.2.1,<3.0.0
+limits>=3.8.0,<4.0.0
+
+# ============================================================================
+# SECURITY
+# ============================================================================
+
+# Cryptography
+cryptography>=42.0.2,<43.0.0
+
+# JWT Tokens
+python-jose>=3.3.0,<4.0.0
+
+# ============================================================================
+# SYSTEM UTILITIES
+# ============================================================================
+
+# System Monitoring
+psutil>=5.9.8,<6.0.0
+
+# File Type Detection
+python-magic>=0.4.27,<1.0.0
+
+# File Watching
+watchdog>=4.0.0,<5.0.0
+
+# ============================================================================
+# DATABASE (Optional)
+# ============================================================================
+
+# SQL ORM
+sqlalchemy>=2.0.25,<3.0.0
+
+# Database Migrations
+alembic>=1.13.1,<2.0.0
+
+# ============================================================================
+# API FRAMEWORK (Optional - for future API mode)
+# ============================================================================
+
+# FastAPI Framework
+fastapi>=0.109.0,<1.0.0
+
+# ASGI Server
+uvicorn>=0.27.0,<1.0.0
+
+# Data Validation
+pydantic>=2.6.0,<3.0.0
+
+# ============================================================================
+# UTILITIES
+# ============================================================================
+
+# Date Utilities
+python-dateutil>=2.8.2,<3.0.0
+
+# Timezone Support
+pytz>=2024.1
+
+# Human-Readable Formats
+humanize>=4.9.0,<5.0.0
+
+# URL and Email Validation
+validators>=0.22.0,<1.0.0
+
+# Regular Expressions (enhanced)
+regex>=2023.12.25,<2024.0.0
+
+# ============================================================================
+# TESTING (Development Only)
+# ============================================================================
+
+# Testing Framework
+pytest>=8.0.0,<9.0.0
+pytest-asyncio>=0.23.4,<1.0.0
+pytest-cov>=4.1.0,<5.0.0
+pytest-mock>=3.12.0,<4.0.0
+pytest-timeout>=2.2.0,<3.0.0
+pytest-xdist>=3.5.0,<4.0.0
+
+# ============================================================================
+# CODE QUALITY (Development Only)
+# ============================================================================
+
+# Code Formatting
+black>=24.1.1,<25.0.0
+
+# Linting
+flake8>=7.0.0,<8.0.0
+pylint>=3.0.3,<4.0.0
+
+# Type Checking
+mypy>=1.8.0,<2.0.0
+
+# Import Sorting
+isort>=5.13.2,<6.0.0
+
+# Security Linting
+bandit>=1.7.6,<2.0.0
+
+# ============================================================================
+# TYPE STUBS (Development Only)
+# ============================================================================
+
+# Type Hints for Third-Party Libraries
+types-requests>=2.31.0
+types-PyYAML>=6.0.12
+types-beautifulsoup4>=4.12.0
+types-python-dateutil>=2.8.19
+types-redis>=4.6.0
+
+# ============================================================================
+# DOCUMENTATION (Development Only)
+# ============================================================================
+
+# Documentation Generator
+sphinx>=7.2.6,<8.0.0
+
+# Sphinx Theme
+sphinx-rtd-theme>=2.0.0,<3.0.0
+
+# Auto-documentation
+sphinx-autodoc-typehints>=1.25.2,<2.0.0
+
+# ============================================================================
+# PERFORMANCE PROFILING (Development Only)
+# ============================================================================
+
+# Memory Profiling
+memory-profiler>=0.61.0,<1.0.0
+
+# Line Profiling
+line-profiler>=4.1.1,<5.0.0
+
+# Performance Monitoring
+py-spy>=0.3.14,<1.0.0
+
+# ============================================================================
+# ADDITIONAL ML/NLP LIBRARIES (Optional)
+# ============================================================================
+
+# Tokenization
+tiktoken>=0.5.2,<1.0.0
+
+# Text Processing
+nltk>=3.8.1,<4.0.0
+spacy>=3.7.2,<4.0.0
+
+# Scientific Computing
+scipy>=1.12.0,<2.0.0
+
+# Plotting (for future analytics)
+matplotlib>=3.8.2,<4.0.0
+seaborn>=0.13.1,<1.0.0
