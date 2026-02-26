@@ -1,5 +1,8 @@
 # Reportr - An Agentic/Multi-Agent AI System  
 
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/7141cdb3-2f15-4bbe-9662-a18c925de0f5" />
+
+
 ## Motivation
 
 The motivation of Reportr was to design and implement an Agentic AI system. The system is extensible. 
