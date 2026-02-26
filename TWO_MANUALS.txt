@@ -1,0 +1,1397 @@
+
+
+COMPLETE USER MANUAL 
+
+This manual provides comprehensive instructions for installing, configuring, and using Reportr. It is intended for users who want to use the system to conduct research, as well as for administrators who need to deploy and maintain the system.
+For using Reportr with local LLM see below.
+
+
+                    12.1 SYSTEM REQUIREMENTS
+Reportr requires the following system resources and software:
+
+Hardware Requirements:
+
+Processor: Modern multi-core processor (Intel Core i5 or equivalent or better)
+Memory: Minimum 8 GB RAM, 16 GB recommended for processing large documents
+Storage: Minimum 10 GB free disk space for the application, dependencies, and vector database (more space required for storing large numbers of reports)
+Network: Broadband internet connection for accessing external search APIs and downloading documents
+Software Requirements:
+
+Operating System: Linux, macOS, or Windows (Linux or macOS recommended)
+Python: Version 3.8 or later (Python 3.9 or 3.10 recommended)
+pip: Python package installer (usually included with Python)
+Git: Version control system (for downloading the source code)
+External Service Requirements:
+
+OpenAI API key (for using GPT models) OR Anthropic API key (for using Claude models). At least one is required for report generation.
+Internet access to arXiv, Google Scholar, DuckDuckGo, and Medium
+                      12.2 INSTALLATION
+Follow these steps to install Reportr on your system:
+
+Step 1: Install Python If Python is not already installed on your system, download and install it from the official Python website (https://www.python.org/downloads/). During installation, ensure that the option to add Python to your system PATH is selected.
+
+To verify that Python is installed correctly, open a terminal or command prompt and type: python --version or python3 --version
+
+You should see output indicating Python version 3.8 or later.
+
+Step 2: Install Git If Git is not already installed, download and install it from the official Git website (https://git-scm.com/downloads).
+
+To verify that Git is installed correctly, type: git --version
+
+Step 3: Download Reportr Open a terminal or command prompt and navigate to the directory where you want to install Reportr. Then clone the repository (or download the source code if it is not in a Git repository): git clone cd reportr
+
+If the source code is provided as a ZIP file, extract it and navigate to the extracted directory.
+
+Step 4: Create a Virtual Environment (Recommended) It is recommended to create a Python virtual environment to isolate Reportr's dependencies from other Python projects on your system. To create a virtual environment, type: python -m venv venv
+
+To activate the virtual environment:
+
+On Linux or macOS: source venv/bin/activate
+On Windows: venv\Scripts\activate
+When the virtual environment is activated, your command prompt should show (venv) at the beginning of the line.
+
+Step 5: Install Dependencies With the virtual environment activated, install Reportr's dependencies using pip: pip install -r requirements.txt
+
+This command will download and install all the Python libraries that Reportr depends on. The installation may take several minutes.
+
+Step 6: Obtain API Keys Reportr requires an API key for at least one large language model provider (OpenAI or Anthropic).
+
+To obtain an OpenAI API key:
+
+Go to https://platform.openai.com/
+Create an account or log in
+Navigate to the API keys section
+Create a new API key
+Copy the key (you will not be able to see it again)
+To obtain an Anthropic API key:
+
+Go to https://www.anthropic.com/
+Create an account or log in
+Navigate to the API keys section
+Create a new API key
+Copy the key
+Step 7: Configure API Keys Create a file named .env in the Reportr directory and add your API key(s): OPENAI_API_KEY=your_openai_key_here or ANTHROPIC_API_KEY=your_anthropic_key_here
+
+Replace "your_openai_key_here" or "your_anthropic_key_here" with your actual API key. Do not share this file or commit it to version control, as it contains sensitive credentials.
+
+Step 8: Verify Installation To verify that Reportr is installed correctly, run: python reportr.py --help
+
+You should see a help message describing the available command-line options.
+
+                    12.3 CONFIGURATION
+Reportr's behavior is controlled by a configuration file named config.yaml. This file is located in the Reportr directory. You can edit this file with any text editor to customize the system's behavior.
+
+The configuration file is organized into several sections:
+
+System Configuration Section: This section controls general system behavior.
+
+system_config:
+  log_level: 'INFO'
+  log_file: './logs/agentic_system.log'
+  max_concurrent_searches: 4
+  max_concurrent_downloads: 10
+  max_concurrent_processing: 4
+  request_timeout: 30
+  retry_attempts: 3
+  retry_delay: 2
+  cache_enabled: true
+  cache_ttl: 3600
+  cache_dir: './cache'
+  rate_limit_calls: 10
+  rate_limit_window: 60
+  reports_dir: './reports'
+  scheduled_reports_dir: './reports/scheduled'
+  single_reports_dir: './reports/single'
+Explanation of system configuration parameters:
+
+log_level: Controls the verbosity of logging. Options are DEBUG, INFO, WARNING, ERROR, CRITICAL. INFO is recommended for normal use.
+log_file: Path to the log file where system messages are written.
+max_concurrent_searches: Maximum number of search sources to query simultaneously.
+max_concurrent_downloads: Maximum number of documents to download simultaneously.
+max_concurrent_processing: Maximum number of documents to process simultaneously.
+request_timeout: Timeout in seconds for HTTP requests.
+retry_attempts: Number of times to retry failed operations.
+retry_delay: Initial delay in seconds between retry attempts (increases exponentially).
+cache_enabled: Whether to cache search results.
+cache_ttl: Time-to-live for cached results in seconds.
+cache_dir: Directory where cache files are stored.
+rate_limit_calls: Maximum number of API calls per time window.
+rate_limit_window: Time window in seconds for rate limiting.
+reports_dir: Base directory where reports are saved.
+scheduled_reports_dir: Subdirectory for scheduled reports.
+single_reports_dir: Subdirectory for single-query reports.
+Search Configuration Section: This section controls the Search Agent's behavior.
+
+search_config:
+  sources:
+    - 'arxiv'
+    - 'scholar'
+    - 'web'
+    - 'medium'
+  max_results_per_source: 10
+  relevance_threshold: 0.5
+  enable_query_expansion: true
+  deduplication_similarity: 0.85
+Explanation of search configuration parameters:
+
+sources: List of search sources to use. You can remove sources you do not want to search.
+max_results_per_source: Maximum number of results to retrieve from each source.
+relevance_threshold: Minimum relevance score for results to be included (0.0 to 1.0).
+enable_query_expansion: Whether to automatically expand queries with related terms.
+deduplication_similarity: Similarity threshold for identifying duplicate results (0.0 to 1.0).
+Document Configuration Section: This section controls the Document Agent's behavior.
+
+document_config:
+  fetch_full_text: true
+  max_pdf_size_mb: 50
+  max_webpage_size_mb: 10
+  pdf_extraction_timeout: 60
+  webpage_extraction_timeout: 30
+  user_agent: 'Reportr/1.0 Research Assistant'
+Explanation of document configuration parameters:
+
+fetch_full_text: Whether to attempt to retrieve full text for documents.
+max_pdf_size_mb: Maximum size in megabytes for PDF downloads.
+max_webpage_size_mb: Maximum size in megabytes for webpage downloads.
+pdf_extraction_timeout: Timeout in seconds for PDF text extraction.
+webpage_extraction_timeout: Timeout in seconds for webpage text extraction.
+user_agent: User agent string to use for HTTP requests.
+Vector Store Configuration Section: This section controls the Vector Store Agent's behavior.
+
+vector_store_config:
+  collection_name: 'research_papers'
+  embedding_model: 'all-MiniLM-L6-v2'
+  chunk_size: 500
+  chunk_overlap: 100
+  similarity_metric: 'cosine'
+  persist_directory: './chroma_db'
+Explanation of vector store configuration parameters:
+
+collection_name: Name of the ChromaDB collection to use.
+embedding_model: Name of the Sentence Transformers model to use for embeddings.
+chunk_size: Size of text chunks in words for long documents.
+chunk_overlap: Overlap between consecutive chunks in words.
+similarity_metric: Metric to use for similarity calculations (cosine, euclidean, or dot).
+persist_directory: Directory where the vector database is stored.
+Report Configuration Section: This section controls the Report Agent's behavior.
+
+report_config:
+  max_items: 10
+  relevance_threshold: 0.6
+  deduplication_similarity: 0.85
+  summary_max_tokens: 500
+  include_full_text_excerpts: true
+  excerpt_length: 500
+Explanation of report configuration parameters:
+
+max_items: Maximum number of results to include in the final report.
+relevance_threshold: Minimum relevance score for results to be included in the report.
+deduplication_similarity: Similarity threshold for content-based deduplication.
+summary_max_tokens: Maximum number of tokens for the LLM-generated summary.
+include_full_text_excerpts: Whether to include excerpts from full text in the report.
+excerpt_length: Length of excerpts in characters.
+LLM Configuration Section: This section controls which large language model provider to use.
+
+llm_config:
+  provider: 'openai'
+  model: 'gpt-4'
+  temperature: 0.7
+  max_tokens: 2000
+Explanation of LLM configuration parameters:
+
+provider: Which LLM provider to use. Options are 'openai' or 'anthropic' , 'ollama' or 'local'
+model: Which specific model to use. For OpenAI, options include 'gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'. For Anthropic, options include 'claude-3- opus', 'claude-3-sonnet', 'claude-3-haiku'.
+temperature: Controls randomness in LLM output (0.0 to 1.0). Lower values produce more deterministic output.
+max_tokens: Maximum number of tokens for LLM responses.
+After modifying the configuration file, save it and restart Reportr for the changes to take effect.
+
+                      12.4 BASIC USAGE
+This section describes how to use Reportr to conduct research.
+
+Conducting a Single Research Query: The most basic use of Reportr is to conduct research on a single topic. To do this, use the following command:
+
+python reportr.py --query "your research topic here"
+Replace "your research topic here" with the actual topic you want to research. For example:
+
+python reportr.py --query "recent advances in quantum computing"
+Reportr will then:
+
+Search multiple sources for relevant documents
+Download and process the documents
+Generate a comprehensive research report
+Save the report to the reports/single directory
+The process typically takes two to five minutes. You will see progress messages in the terminal indicating what the system is doing.
+
+When the process completes, you will see a message indicating where the report was saved. The report will be saved in two formats:
+
+A Markdown file (.md) for human reading
+A JSON file (.json) for machine processing
+Viewing the Report: To view the Markdown report, you can use any text editor or Markdown viewer. On most systems, you can open the file with:
+
+cat reports/single/<topic>/<filename>.md
+Or open it in your preferred text editor.
+
+The report will contain:
+
+A header with the research topic, query, timestamp, and metadata
+An executive summary synthesizing the key findings
+A list of identified trends
+Detailed findings for each source, including title, authors, publication date, abstract or excerpt, and URL
+Specifying Output Directory: By default, reports are saved to the reports/single directory. You can specify a different output directory using the --output option:
+
+python reportr.py --query "machine learning" --output /path/to/output
+Adjusting Verbosity: By default, Reportr displays INFO-level messages. You can increase verbosity to see more detailed DEBUG-level messages:
+
+python reportr.py --query "artificial intelligence" --verbose
+Or you can reduce verbosity to see only WARNING-level and higher messages:
+
+python reportr.py --query "neural networks" --quiet
+                    12.5 ADVANCED USAGE
+This section describes more advanced features of Reportr.
+
+Scheduled Research: Reportr can automatically conduct research on specified topics at regular intervals. This is useful for staying current with rapidly evolving fields.
+
+To schedule research, create a schedule configuration file (or add to the existing config.yaml):
+
+schedule_config:
+  enabled: true
+  topics:
+    - topic: "artificial intelligence news"
+      frequency: "daily"
+      time: "09:00"
+    - topic: "quantum computing breakthroughs"
+      frequency: "weekly"
+      day: "Monday"
+      time: "10:00"
+Then run Reportr in scheduling mode:
+
+python reportr.py --schedule
+Reportr will run continuously, checking the schedule and conducting research at the specified times. Scheduled reports are saved to the reports/scheduled directory.
+
+To stop the scheduler, press Ctrl+C.
+
+Customizing Search Sources: You can specify which search sources to use for a particular query using the --sources option:
+
+python reportr.py --query "machine learning" --sources arxiv scholar
+This will search only arXiv and Google Scholar, skipping web search and Medium.
+
+Limiting Results: You can limit the number of results included in the report using the --max- results option:
+
+python reportr.py --query "deep learning" --max-results 5
+This will include only the top 5 most relevant results in the report.
+
+Specifying LLM Provider: You can override the LLM provider specified in the configuration file using the --llm-provider option:
+
+python reportr.py --query "neural networks" --llm-provider anthropic
+This will use Anthropic's Claude models instead of OpenAI's GPT models or local LLMs.
+
+Disabling Full Text Retrieval: If you want faster results and do not need full text content, you can disable full text retrieval:
+
+python reportr.py --query "computer vision" --no-full-text
+This will use only abstracts and snippets, which is faster but provides less detail.
+
+Semantic Search: You can use the vector database to perform semantic search on previously researched topics:
+
+python reportr.py --semantic-search "transformer architectures"
+This will search the vector database for documents semantically similar to the query, without conducting new searches on external sources.
+
+Exporting Reports: Reports are automatically saved in Markdown and JSON formats. You can convert the Markdown report to other formats using external tools. For example, to convert to PDF using pandoc:
+
+pandoc reports/single/<topic>/<filename>.md -o report.pdf
+To convert to HTML:
+
+pandoc reports/single/<topic>/<filename>.md -o report.html
+                    12.6 TROUBLESHOOTING
+This section addresses common problems and their solutions.
+
+Problem: "Module not found" error when running Reportr Solution: Ensure that you have activated the virtual environment and installed all dependencies. Run: source venv/bin/activate (on Linux/macOS) venv\Scripts\activate (on Windows) pip install -r requirements.txt
+
+Problem: "API key not found" error Solution: Ensure that you have created a .env file with your API key. The file should contain: OPENAI_API_KEY=your_key_here or ANTHROPIC_API_KEY=your_key_here Make sure there are no extra spaces or quotes around the key.
+
+Problem: "Rate limit exceeded" error Solution: You are making too many requests to an external API. Wait a few minutes and try again. If the problem persists, increase the rate_limit_window parameter in config.yaml or decrease the rate_limit_calls parameter.
+
+Problem: No results found for query Solution: Try broadening your query or checking that the search sources are enabled in config.yaml. Some queries may be too specific or may use terminology that does not appear in the indexed sources.
+
+Problem: PDF download or extraction fails Solution: Some PDFs may be behind paywalls, have broken links, or be in formats that are difficult to extract. Reportr will log warnings for failed downloads and continue with other documents. Check the log file for details.
+
+Problem: Slow performance Solution: Several factors can affect performance:
+
+Reduce max_results_per_source in config.yaml to retrieve fewer results
+Disable full text retrieval using --no-full-text
+Reduce max_concurrent_downloads if your internet connection is slow
+Use a faster LLM model (e.g., gpt-3.5-turbo instead of gpt-4)
+Problem: Out of memory error Solution: Reportr may run out of memory when processing very large documents or large numbers of documents. Solutions:
+
+Reduce max_pdf_size_mb in config.yaml to skip very large PDFs
+Reduce max_results_per_source to process fewer documents
+Increase your system's available RAM
+Close other applications to free up memory
+Problem: ChromaDB errors Solution: If you encounter errors related to the vector database, try deleting the database directory (specified by persist_directory in config.yaml) and letting Reportr recreate it. Note that this will delete all previously indexed documents.
+
+Problem: LLM generates poor quality summaries Solution: Try adjusting the temperature parameter in config.yaml. Lower values (e.g., 0.3) produce more focused, deterministic output. Higher values (e.g., 0.9) produce more creative but potentially less accurate output. You can also try a different model.
+
+                    12.7 BEST PRACTICES
+This section provides recommendations for getting the best results from Reportr.
+
+Crafting Effective Queries:
+
+Be specific but not overly narrow. "transformer architectures for NLP" is better than just "transformers" or "attention mechanisms in transformer architectures for natural language processing tasks".
+Include key terminology from your field. This helps the search engines find relevant academic papers.
+Avoid very common words that might dilute the search. "Recent advances in X" is often better than "What is X".
+If searching for a specific paper or author, include that information in the query.
+Interpreting Results:
+
+Always verify important claims by checking the original sources. The LLM- generated summary is generally accurate but should not be blindly trusted.
+Pay attention to publication dates. Older papers may not reflect current understanding.
+Consider the source. Papers from arXiv are preprints and may not have been peer-reviewed. Blog posts may represent individual opinions rather than consensus.
+Look for agreement across multiple sources. Claims that appear in multiple independent sources are more likely to be reliable.
+Managing the Knowledge Base:
+
+The vector database grows over time as you conduct more research. This is generally beneficial, but very large databases may slow down searches.
+Periodically review and clean up the database by deleting old or irrelevant entries.
+Consider using separate collections for different research projects to keep them organized.
+Optimizing Performance:
+
+For quick exploratory research, disable full text retrieval and reduce the number of results.
+For comprehensive research, enable full text retrieval and increase the number of results.
+Use scheduled research for topics you need to monitor continuously, rather than running manual queries repeatedly.
+Staying Within API Limits:
+
+Be mindful of API rate limits and costs, especially when using paid services like OpenAI or Anthropic.
+Use caching to avoid redundant API calls for the same query.
+Consider using less expensive models (e.g., GPT-3.5 instead of GPT-4) for routine research.
+Organizing Reports:
+
+Reports are automatically organized by topic in separate directories. Use descriptive, consistent topic names to keep reports organized.
+The timestamp in the filename allows you to track how knowledge on a topic evolves over time.
+Consider creating a naming convention for related queries (e.g., "ML- transformers", "ML-CNNs", "ML-RNNs") to group related reports.
+                    12.8 FREQUENTLY ASKED QUESTIONS
+Q: How much does it cost to use Reportr? A: Reportr itself is free and open source. However, it requires an API key for either OpenAI or Anthropic, which are paid services. The cost per research query depends on the model used and the amount of text processed. A typical query using GPT-3.5-turbo costs a few cents. Using GPT-4 is more expensive, typically 10-50 cents per query. Check the pricing pages of OpenAI or Anthropic for current rates.
+
+Q: Can I use Reportr without an internet connection? A: No. Reportr requires internet access to search external sources, download documents, and access LLM APIs. However, once documents are indexed in the vector database, you can perform semantic searches on them offline (though you still need internet access for LLM-based summarization).
+
+Q: How accurate are the generated summaries? A: The summaries are generally accurate and useful, but they are not perfect. Large language models can occasionally make mistakes, misinterpret information, or generate plausible-sounding but incorrect statements. Always verify important claims by checking the original sources.
+
+Q: Can I use Reportr for commercial purposes? A: This depends on the license under which Reportr is distributed. Check the LICENSE file in the Reportr directory. Also be aware that the terms of service for the external APIs (OpenAI, Anthropic, arXiv, Google Scholar, etc.) may impose restrictions on commercial use.
+
+Q: How do I update Reportr to a newer version? A: If Reportr is in a Git repository, you can update by running: git pull pip install -r requirements.txt If you downloaded Reportr as a ZIP file, download the new version and replace the old files.
+
+Q: Can I run multiple instances of Reportr simultaneously? A: Yes, but be careful about rate limits and resource usage. Each instance will make API calls and consume memory. Ensure that your total usage stays within the rate limits of the external services.
+
+Q: How do I contribute to Reportr development? A: If Reportr is an open source project, check the repository for contribution guidelines. Typically, you would fork the repository, make your changes, and submit a pull request.
+
+Q: What should I do if I find a bug? A: Check the issue tracker (if the project has one) to see if the bug has already been reported. If not, create a new issue with a detailed description of the bug, steps to reproduce it, and any relevant error messages or log files.
+
+Q: Can Reportr access paywalled content? A: No. Reportr can only access publicly available content. If a paper is behind a paywall, Reportr will not be able to retrieve the full text, though it may still be able to retrieve the abstract.
+
+Q: How long are reports stored? A: Reports are stored indefinitely unless you manually delete them. They are saved as files in the reports directory and will remain there until you remove them.
+
+Q: Can I customize the report format? A: Yes. The report format is controlled by the render_report_markdown method in the Report Agent. You can modify this method to change the structure, styling, or content of the reports. You can also create additional rendering methods for other formats (e.g., HTML, PDF, LaTeX).
+
+                    12.9 COMMAND-LINE REFERENCE
+This section provides a complete reference of all command-line options.
+
+Basic Syntax: python reportr.py [OPTIONS]
+
+Options:
+
+--query QUERY, -q QUERY Conduct research on the specified topic. This is the primary way to use Reportr for single-query research. Example: python reportr.py --query "machine learning"
+
+--schedule, -s Run Reportr in scheduling mode, conducting research on topics specified in the schedule configuration at regular intervals. Example: python reportr.py --schedule
+
+--semantic-search QUERY Perform semantic search on the vector database without conducting new searches on external sources. Example: python reportr.py --semantic-search "neural networks"
+
+--sources SOURCE [SOURCE ...] Specify which search sources to use. Options are: arxiv, scholar, web, medium. Multiple sources can be specified separated by spaces. Example: python reportr.py --query "AI" --sources arxiv scholar
+
+--max-results N Limit the number of results included in the final report to N. Example: python reportr.py --query "AI" --max-results 5
+
+--output PATH, -o PATH Specify the directory where reports should be saved. Example: python reportr.py --query "AI" --output /path/to/output
+
+--llm-provider PROVIDER Specify which LLM provider to use. Options are: openai, anthropic, ollama, local (using llama.cpp). Example: python reportr.py --query "AI" --llm-provider anthropic
+
+--llm-model MODEL Specify which LLM model to use. The available models depend on the provider. Example: python reportr.py --query "AI" --llm-model gpt-3.5-turbo
+
+--no-full-text Disable full text retrieval. This makes research faster but provides less detail. Example: python reportr.py --query "AI" --no-full-text
+
+--config PATH, -c PATH Specify a custom configuration file instead of the default config.yaml. Example: python reportr.py --query "AI" --config custom_config.yaml
+
+--verbose, -v Increase logging verbosity to DEBUG level. Example: python reportr.py --query "AI" --verbose
+
+--quiet Decrease logging verbosity to WARNING level. Example: python reportr.py --query "AI" --quiet
+
+--version Display the version number of Reportr and exit. Example: python reportr.py --version
+
+--help, -h Display help message describing all command-line options and exit. Example: python reportr.py --help
+
+                    12.10 CONFIGURATION FILE REFERENCE
+This section provides a complete reference of all configuration parameters.
+
+System Configuration (system_config):
+
+log_level: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+log_file: Path to log file
+max_concurrent_searches: Maximum concurrent search operations
+max_concurrent_downloads: Maximum concurrent document downloads
+max_concurrent_processing: Maximum concurrent document processing operations
+request_timeout: HTTP request timeout in seconds
+retry_attempts: Number of retry attempts for failed operations
+retry_delay: Initial delay between retries in seconds
+cache_enabled: Whether to enable result caching (true/false)
+cache_ttl: Cache time-to-live in seconds
+cache_dir: Directory for cache storage
+rate_limit_calls: Maximum API calls per time window
+rate_limit_window: Time window for rate limiting in seconds
+reports_dir: Base directory for report storage
+scheduled_reports_dir: Subdirectory for scheduled reports
+single_reports_dir: Subdirectory for single-query reports
+Search Configuration (search_config):
+
+sources: List of search sources to use (arxiv, scholar, web, medium)
+max_results_per_source: Maximum results to retrieve from each source
+relevance_threshold: Minimum relevance score (0.0 to 1.0)
+enable_query_expansion: Whether to expand queries (true/false)
+deduplication_similarity: Similarity threshold for deduplication (0.0 to 1.0)
+Document Configuration (document_config):
+
+fetch_full_text: Whether to retrieve full text (true/false)
+max_pdf_size_mb: Maximum PDF size in megabytes
+max_webpage_size_mb: Maximum webpage size in megabytes
+pdf_extraction_timeout: PDF extraction timeout in seconds
+webpage_extraction_timeout: Webpage extraction timeout in seconds
+user_agent: User agent string for HTTP requests
+Vector Store Configuration (vector_store_config):
+
+collection_name: Name of ChromaDB collection
+embedding_model: Sentence Transformers model name
+chunk_size: Text chunk size in words
+chunk_overlap: Overlap between chunks in words
+similarity_metric: Similarity metric (cosine, euclidean, dot)
+persist_directory: Directory for vector database storage
+Report Configuration (report_config):
+
+max_items: Maximum results in final report
+relevance_threshold: Minimum relevance for inclusion (0.0 to 1.0)
+deduplication_similarity: Content similarity threshold (0.0 to 1.0)
+summary_max_tokens: Maximum tokens for LLM summary
+include_full_text_excerpts: Whether to include excerpts (true/false)
+excerpt_length: Length of excerpts in characters
+LLM Configuration (llm_config):
+
+provider: LLM provider (openai, anthropic, ollama, local)
+model: Model name (e.g., gpt-4, claude-3-opus)
+temperature: Randomness parameter (0.0 to 1.0)
+max_tokens: Maximum tokens for LLM responses
+Schedule Configuration (schedule_config):
+
+enabled: Whether scheduling is enabled (true/false)
+topics: List of scheduled research topics, each with:
+topic: Research topic string
+frequency: Frequency (daily, weekly, monthly)
+time: Time in HH:MM format
+day: Day of week (for weekly) or day of month (for monthly)
+                    12.11 SUPPORT AND RESOURCES
+For additional support and resources:
+
+Documentation:
+
+This user manual provides comprehensive information about installation, configuration, and usage.
+The source code includes inline comments explaining implementation details.
+The configuration file includes comments describing each parameter.
+Community Support:
+
+Check the project repository for issues, discussions, and updates.
+Search for existing issues before creating new ones.
+Provide detailed information when reporting bugs or requesting features.
+Professional Support:
+
+For enterprise deployments or custom development, contact the author or maintainers.
+Updates:
+
+Check the repository regularly for updates and new features.
+Subscribe to release notifications if available.
+Learning Resources:
+
+The architecture section of this booklet provides in-depth explanation of the system's design.
+The source code serves as a reference implementation of multi-agent systems.
+Contact Information:
+
+Author of this Booklet: Michael Stal
+Date: February 2026
+Project: Reportr - Multi-Agent AI Research System
+
+
+
+LOCAL LLM SUPPORT WITH LLAMA.CPP AND OLLAMA EXTENDING REPORTR FOR OFFLINE AND COST-FREE OPERATION
+
+
+1. INTRODUCTION TO LOCAL LLM SUPPORT
+
+The original implementation of Reportr relied exclusively on cloud-based large language model providers, specifically OpenAI's GPT models and Anthropic's Claude models. While these cloud-based solutions offer exceptional quality and convenience, they present several significant limitations.
+
+First, cloud-based LLMs require continuous internet connectivity. Second, they incur ongoing operational costs with each API call. Third, they raise privacy concerns as your research data is transmitted to external servers. Fourth, they create dependency on external services that may experience downtime or pricing changes.
+
+To address these limitations, Reportr now supports local LLM execution using two popular frameworks: llama.cpp and Ollama. These frameworks enable running sophisticated language models entirely on your local hardware, without requiring internet connectivity or incurring per-use costs.
+
+Benefits of Local LLMs:
+
+Complete privacy: All data processing occurs on your hardware
+Zero per-query costs: Unlimited usage after initial hardware investment
+Offline operation: No internet connection required
+Data sovereignty: Full control over your research data
+Regulatory compliance: Easier to meet HIPAA, GDPR, and other requirements
+Customization: Ability to fine-tune models for specific domains
+Trade-offs:
+
+Lower quality compared to GPT-4 or Claude 3 Opus
+Requires capable hardware (preferably with GPU)
+Slower inference speed on consumer hardware
+Initial setup complexity
+Model management overhead
+2. INSTALLING AND CONFIGURING OLLAMA 
+
+Ollama is the recommended option for most users because it provides the easiest setup and management experience. Ollama handles model downloading, version management, and provides a simple API interface.
+
+                    2.1 INSTALLING OLLAMA
+Installation on Linux: Open a terminal and run the following command:
+
+curl -fsSL https://ollama.ai/install.sh | sh
+This script will download and install Ollama on your system.
+
+Installation on macOS: Download the Ollama application from the official website:
+
+https://ollama.ai/download
+Open the downloaded DMG file and drag Ollama to your Applications folder. Then launch Ollama from your Applications.
+
+Installation on Windows: Download the Ollama installer from the official website:
+
+https://ollama.ai/download
+Run the installer and follow the installation wizard. Ollama will be installed as a Windows service that starts automatically.
+
+Verifying Installation: After installation, verify that Ollama is running by opening a terminal and typing:
+
+ollama --version
+You should see the version number displayed.
+
+                2.2 DOWNLOADING MODELS WITH OLLAMA
+Ollama makes it extremely easy to download and manage models. The following models are recommended for use with Reportr:
+
+For Best Quality (Requires 16GB+ RAM): Download the Mixtral 8x7B model, which provides excellent quality comparable to GPT-3.5:
+
+ollama pull mixtral:8x7b
+For Balanced Performance (Requires 8GB+ RAM): Download the Llama 2 13B model, which provides good quality with moderate resource requirements:
+
+ollama pull llama2:13b
+For Lower-End Hardware (Requires 4GB+ RAM): Download the Llama 2 7B model, which can run on more modest hardware:
+
+ollama pull llama2:7b
+For Fastest Performance (Requires 2GB+ RAM): Download the Mistral 7B model, which is optimized for speed:
+
+ollama pull mistral:7b
+For Code and Technical Content: Download the CodeLlama model, which is optimized for technical and programming content:
+
+ollama pull codellama:13b
+Listing Downloaded Models: To see which models you have downloaded, run:
+
+ollama list
+This will display all locally available models with their sizes and last modified dates.
+
+Testing a Model: To verify that a model works correctly, you can test it interactively:
+
+ollama run llama2:13b
+This will start an interactive chat session. Type a message and press Enter to see the model's response. Type "/bye" to exit.
+
+                2.3 STARTING OLLAMA SERVER
+Ollama runs as a background service that provides an HTTP API. On most systems, the service starts automatically after installation.
+
+Checking if Ollama is Running: To verify that the Ollama service is running, use:
+
+curl http://localhost:11434/api/tags
+If Ollama is running, this will return a JSON response listing available models.
+
+Starting Ollama Manually (if needed): If Ollama is not running, you can start it manually:
+
+On Linux: ollama serve
+
+On macOS: Open the Ollama application from Applications
+
+On Windows: Start the "Ollama" service from the Services control panel
+
+The Ollama server listens on port 11434 by default. This port is used by Reportr to communicate with Ollama.
+
+            2.4 CONFIGURING REPORTR TO USE OLLAMA
+To configure Reportr to use Ollama instead of cloud-based LLMs, you need to modify the configuration file.
+
+Step 1: Open the Configuration File Open config.yaml in your text editor:
+
+nano config.yaml
+or use any text editor you prefer.
+
+Step 2: Modify the LLM Configuration Section Find the llm_config section and modify it as follows:
+
+llm_config:
+  provider: 'ollama'
+  model: 'llama2:13b'
+  base_url: 'http://localhost:11434'
+  temperature: 0.7
+  max_tokens: 2000
+Explanation of parameters:
+
+provider: Set to 'ollama' to use Ollama instead of OpenAI or Anthropic
+model: The name of the Ollama model to use (must match a downloaded model)
+base_url: The URL where Ollama is running (default is localhost:11434)
+temperature: Controls randomness (0.0 = deterministic, 1.0 = very random)
+max_tokens: Maximum length of generated responses
+Step 3: Save the Configuration File Save the file and exit your text editor.
+
+Step 4: Test the Configuration Run a simple research query to verify that Reportr can communicate with Ollama:
+
+python reportr.py --query "test query about artificial intelligence"
+If everything is configured correctly, Reportr will use Ollama to generate the research report. You should see log messages indicating that it is connecting to the local Ollama server.
+
+                2.5 ADVANCED OLLAMA CONFIGURATION
+Customizing Model Behavior with Modelfiles: Ollama supports Modelfiles, which allow you to customize how a model behaves. You can create a Modelfile to add custom system prompts or adjust parameters.
+
+Create a file named Modelfile with the following content:
+
+FROM llama2:13b
+
+SYSTEM """You are a research assistant helping to synthesize information 
+from academic papers and technical articles. Provide clear, accurate, and 
+well-structured summaries. Focus on key findings and important insights."""
+
+PARAMETER temperature 0.7
+PARAMETER num_ctx 4096
+Then create a custom model from this Modelfile:
+
+ollama create reportr-assistant -f Modelfile
+Now you can use this custom model in Reportr by setting:
+
+llm_config:
+  provider: 'ollama'
+  model: 'reportr-assistant'
+Using Multiple Models: You can configure Reportr to use different models for different tasks. For example, you might use a larger model for generating summaries and a smaller, faster model for extracting key findings.
+
+This requires modifying the Reportr source code to support model selection per task, but the configuration would look like:
+
+llm_config:
+  provider: 'ollama'
+  models:
+    summary: 'mixtral:8x7b'
+    findings: 'mistral:7b'
+    trends: 'llama2:7b'
+Remote Ollama Servers: If you have Ollama running on a different machine (for example, a powerful server with GPUs), you can configure Reportr to use it by changing the base_url:
+
+llm_config:
+  provider: 'ollama'
+  model: 'mixtral:8x7b'
+  base_url: 'http://192.168.1.100:11434'
+Replace the IP address with the address of your Ollama server.
+
+3. INSTALLING AND CONFIGURING LLAMA.CPP
+
+Llama.cpp provides more control and flexibility than Ollama, but requires more manual setup. It is recommended for advanced users who want fine-grained control over model execution or who need to use models not available in Ollama.
+
+                3.1 INSTALLING LLAMA.CPP
+Installation on Linux: First, install the required build tools:
+
+sudo apt-get update
+sudo apt-get install build-essential git cmake
+Clone the llama.cpp repository:
+
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+Build llama.cpp:
+
+make
+For GPU acceleration with CUDA (if you have an NVIDIA GPU):
+
+make LLAMA_CUBLAS=1
+For GPU acceleration with Metal (on macOS with Apple Silicon):
+
+make LLAMA_METAL=1
+Installation on macOS: Install Xcode Command Line Tools if not already installed:
+
+xcode-select --install
+Clone and build llama.cpp:
+
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+make
+For Apple Silicon Macs, Metal acceleration is automatically enabled.
+
+Installation on Windows: The easiest way to build llama.cpp on Windows is using CMake and Visual Studio.
+
+Install Visual Studio 2019 or later with C++ development tools. Install CMake from https://cmake.org/download/
+
+Clone the repository:
+
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+Build using CMake:
+
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+Verifying Installation: After building, verify that the main executable works:
+
+./main --help
+You should see the help message with available options.
+
+                3.2 DOWNLOADING MODELS FOR LLAMA.CPP
+Llama.cpp uses GGUF format models. These can be downloaded from Hugging Face.
+
+Recommended Model Sources: The following Hugging Face repositories provide high-quality GGUF models:
+
+For Llama 2 models: https://huggingface.co/TheBloke/Llama-2-13B-GGUF
+
+For Mistral models: https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF
+
+For Mixtral models: https://huggingface.co/TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF
+
+Downloading a Model: Navigate to the model repository on Hugging Face and download the GGUF file. Choose a quantization level based on your available RAM:
+
+For 16GB+ RAM: Download the Q5_K_M or Q6_K variant
+
+For 8-16GB RAM: Download the Q4_K_M variant
+
+For 4-8GB RAM: Download the Q3_K_M variant
+
+For example, to download Llama 2 13B Q4_K_M:
+
+wget https://huggingface.co/TheBloke/Llama-2-13B-GGUF/resolve/main/llama-2-13b.Q4_K_M.gguf
+Place the downloaded model file in a directory such as:
+
+mkdir -p ~/llama-models
+mv llama-2-13b.Q4_K_M.gguf ~/llama-models/
+                3.3 RUNNING LLAMA.CPP SERVER
+Llama.cpp includes a server mode that provides an HTTP API compatible with the OpenAI API specification.
+
+Starting the Server: Navigate to the llama.cpp directory and run:
+
+./server -m ~/llama-models/llama-2-13b.Q4_K_M.gguf -c 4096 --host 0.0.0.0 --port 8080
+Explanation of parameters:
+
+-m: Path to the model file
+-c: Context size (number of tokens the model can consider)
+--host: Network interface to bind to (0.0.0.0 means all interfaces)
+--port: Port number to listen on
+For GPU acceleration (if built with CUDA):
+
+./server -m ~/llama-models/llama-2-13b.Q4_K_M.gguf -c 4096 --host 0.0.0.0 --port 8080 -ngl 32
+The -ngl parameter specifies how many layers to offload to the GPU. Higher values use more GPU memory but provide faster inference.
+
+Testing the Server: Verify that the server is running by making a test request:
+
+curl http://localhost:8080/v1/models
+This should return information about the loaded model.
+
+Running as a Background Service: To run the llama.cpp server as a background service that starts automatically, you can create a systemd service file on Linux.
+
+Create a file at /etc/systemd/system/llama-cpp.service:
+
+[Unit]
+Description=Llama.cpp Server
+After=network.target
+
+[Service]
+Type=simple
+User=your-username
+WorkingDirectory=/path/to/llama.cpp
+ExecStart=/path/to/llama.cpp/server -m /path/to/model.gguf -c 4096 --host 0.0.0.0 --port 8080
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Replace the paths and username with your actual values.
+
+Enable and start the service:
+
+sudo systemctl enable llama-cpp
+sudo systemctl start llama-cpp
+Check the status:
+
+sudo systemctl status llama-cpp
+            3.4 CONFIGURING REPORTR TO USE LLAMA.CPP
+Configuring Reportr to use llama.cpp is similar to configuring it for Ollama.
+
+Step 1: Open the Configuration File Open config.yaml in your text editor:
+
+nano config.yaml
+Step 2: Modify the LLM Configuration Section Find the llm_config section and modify it as follows:
+
+llm_config:
+  provider: 'llamacpp'
+  model: 'llama-2-13b'
+  base_url: 'http://localhost:8080/v1'
+  temperature: 0.7
+  max_tokens: 2000
+Explanation of parameters:
+
+provider: Set to 'llamacpp' to use llama.cpp
+model: A descriptive name for the model (used for logging)
+base_url: The URL where llama.cpp server is running, including /v1 path
+temperature: Controls randomness in generation
+max_tokens: Maximum length of generated responses
+Step 3: Save and Test Save the configuration file and test with a query:
+
+python reportr.py --query "artificial intelligence trends"
+Reportr will now use your local llama.cpp server for all LLM operations.
+
+4. CONFIGURING REPORTR FOR LOCAL LLMs
+
+This section provides the complete configuration details for using local LLMs with Reportr.
+
+                4.1 PROVIDER IMPLEMENTATION
+Reportr includes built-in support for Ollama and llama.cpp through provider implementations. The system automatically detects which provider you have configured and uses the appropriate API.
+
+Complete Configuration Example for Ollama:
+
+llm_config:
+  provider: 'ollama'
+  model: 'llama2:13b'
+  base_url: 'http://localhost:11434'
+  temperature: 0.7
+  max_tokens: 2000
+  top_p: 0.9
+  top_k: 40
+  repeat_penalty: 1.1
+  num_ctx: 4096
+  num_predict: 2000
+Additional Ollama-specific parameters:
+
+top_p: Nucleus sampling parameter (0.0 to 1.0)
+top_k: Top-k sampling parameter
+repeat_penalty: Penalty for repeating tokens (1.0 = no penalty)
+num_ctx: Context window size
+num_predict: Maximum tokens to generate
+Complete Configuration Example for Llama.cpp:
+
+llm_config:
+  provider: 'llamacpp'
+  model: 'llama-2-13b-q4'
+  base_url: 'http://localhost:8080/v1'
+  temperature: 0.7
+  max_tokens: 2000
+  top_p: 0.9
+  top_k: 40
+  repeat_penalty: 1.1
+  presence_penalty: 0.0
+  frequency_penalty: 0.0
+Additional llama.cpp-specific parameters:
+
+presence_penalty: Penalty for using tokens that have appeared (0.0 to 2.0)
+frequency_penalty: Penalty based on token frequency (0.0 to 2.0)
+                4.2 ENVIRONMENT VARIABLES
+Instead of storing configuration in config.yaml, you can use environment variables. This is useful for containerized deployments or when you want to switch between different configurations easily.
+
+For Ollama:
+
+export LLM_PROVIDER=ollama
+export LLM_MODEL=llama2:13b
+export LLM_BASE_URL=http://localhost:11434
+export LLM_TEMPERATURE=0.7
+For Llama.cpp:
+
+export LLM_PROVIDER=llamacpp
+export LLM_MODEL=llama-2-13b
+export LLM_BASE_URL=http://localhost:8080/v1
+export LLM_TEMPERATURE=0.7
+Reportr will automatically use these environment variables if they are set, overriding the values in config.yaml.
+
+                4.3 HYBRID CONFIGURATION
+You can configure Reportr to use different providers for different purposes. For example, you might use a local model for most queries but fall back to a cloud model for particularly complex queries.
+
+Example hybrid configuration:
+
+llm_config:
+  primary_provider: 'ollama'
+  fallback_provider: 'openai'
+  
+  ollama:
+    model: 'llama2:13b'
+    base_url: 'http://localhost:11434'
+    temperature: 0.7
+    max_tokens: 2000
+  
+  openai:
+    model: 'gpt-4'
+    temperature: 0.7
+    max_tokens: 2000
+With this configuration, Reportr will first try to use Ollama. If Ollama is unavailable or returns an error, it will automatically fall back to OpenAI.
+
+You can also configure different providers for different tasks:
+
+llm_config:
+  providers:
+    summary: 'ollama'
+    findings: 'ollama'
+    complex_analysis: 'openai'
+  
+  ollama:
+    model: 'mixtral:8x7b'
+    base_url: 'http://localhost:11434'
+  
+  openai:
+    model: 'gpt-4'
+This configuration uses local models for routine tasks but uses GPT-4 for complex analysis tasks that benefit from the highest quality model.
+
+5. MODEL SELECTION AND RECOMMENDATIONS
+
+Choosing the right model depends on your hardware capabilities, quality requirements, and use case.
+
+                5.1 MODEL SIZE GUIDELINES
+Model Parameter Counts and Memory Requirements:
+
+7 Billion Parameter Models:
+
+Full precision (FP16): ~14 GB RAM
+Q8 quantization: ~7 GB RAM
+Q4 quantization: ~4 GB RAM
+Q3 quantization: ~3 GB RAM
+13 Billion Parameter Models:
+
+Full precision (FP16): ~26 GB RAM
+Q8 quantization: ~13 GB RAM
+Q4 quantization: ~7 GB RAM
+Q3 quantization: ~5 GB RAM
+34 Billion Parameter Models:
+
+Full precision (FP16): ~68 GB RAM
+Q8 quantization: ~34 GB RAM
+Q4 quantization: ~18 GB RAM
+Q3 quantization: ~13 GB RAM
+70 Billion Parameter Models:
+
+Full precision (FP16): ~140 GB RAM
+Q8 quantization: ~70 GB RAM
+Q4 quantization: ~35 GB RAM
+Q3 quantization: ~26 GB RAM
+Mixture of Experts (Mixtral 8x7B):
+
+Full precision (FP16): ~90 GB RAM
+Q8 quantization: ~45 GB RAM
+Q4 quantization: ~24 GB RAM
+Q3 quantization: ~18 GB RAM
+These are approximate values. Actual memory usage depends on context length and other factors.
+
+                5.2 RECOMMENDED MODELS BY HARDWARE
+For Systems with 4-8 GB Available RAM: Best option: Mistral 7B Q4_K_M ollama pull mistral:7b
+
+Alternative: Llama 2 7B Q3_K_M ollama pull llama2:7b
+
+These models provide acceptable quality for basic summarization tasks while running on modest hardware.
+
+For Systems with 8-16 GB Available RAM: Best option: Llama 2 13B Q4_K_M ollama pull llama2:13b
+
+Alternative: Mistral 7B Q5_K_M or Q6_K ollama pull mistral:7b-q6
+
+These models provide good quality suitable for most research tasks.
+
+For Systems with 16-32 GB Available RAM: Best option: Mixtral 8x7B Q4_K_M ollama pull mixtral:8x7b
+
+Alternative: Llama 2 13B Q8_0 or Llama 2 70B Q3_K_M ollama pull llama2:70b
+
+These models provide excellent quality approaching GPT-3.5 performance.
+
+For Systems with 32+ GB Available RAM and GPU: Best option: Mixtral 8x7B Q5_K_M or Q6_K ollama pull mixtral:8x7b
+
+Alternative: Llama 2 70B Q4_K_M ollama pull llama2:70b
+
+These models provide the highest quality available from open-source models.
+
+For Code and Technical Content: Best option: CodeLlama 13B ollama pull codellama:13b
+
+Alternative: CodeLlama 34B (if you have sufficient RAM) ollama pull codellama:34b
+
+These models are specifically trained on code and technical documentation.
+
+                5.3 QUALITY COMPARISON
+Approximate quality rankings for research summarization tasks:
+
+Tier 1 (Excellent - Comparable to GPT-4):
+
+GPT-4 Turbo (cloud)
+Claude 3 Opus (cloud)
+Tier 2 (Very Good - Comparable to GPT-3.5):
+
+Mixtral 8x7B Q5_K or higher
+Llama 2 70B Q4_K or higher
+Claude 3 Sonnet (cloud)
+GPT-3.5 Turbo (cloud)
+Tier 3 (Good - Suitable for most research tasks):
+
+Mixtral 8x7B Q4_K
+Llama 2 70B Q3_K
+Llama 2 13B Q5_K or higher
+Mistral 7B Q6_K
+Tier 4 (Acceptable - Basic summarization):
+
+Llama 2 13B Q4_K
+Mistral 7B Q4_K or Q5_K
+CodeLlama 13B Q4_K
+Tier 5 (Limited - Simple tasks only):
+
+Llama 2 7B Q4_K
+Mistral 7B Q3_K
+Smaller or more heavily quantized models
+For Reportr, we recommend using at least Tier 3 models for acceptable results. Tier 2 models provide very good results that are suitable for professional use. Tier 1 cloud models provide the best quality but at the cost of privacy and per-use fees.
+
+6. PERFORMANCE OPTIMIZATION
+
+This section provides guidance on optimizing performance when using local LLMs.
+
+                6.1 HARDWARE OPTIMIZATION
+CPU Optimization: If running on CPU only, ensure you are using a build with appropriate SIMD instructions for your processor.
+
+For modern Intel/AMD processors with AVX2: make LLAMA_AVX2=1
+
+For newer processors with AVX512: make LLAMA_AVX512=1
+
+Check your CPU capabilities: lscpu | grep -i avx
+
+GPU Optimization: If you have an NVIDIA GPU, using CUDA acceleration provides dramatic speedup.
+
+Build llama.cpp with CUDA support: make LLAMA_CUBLAS=1
+
+When running the server, specify how many layers to offload to GPU: ./server -m model.gguf -ngl 40
+
+The -ngl parameter specifies the number of layers. Higher values use more GPU memory but provide faster inference. Start with a low value and increase until you run out of GPU memory.
+
+For Ollama, GPU acceleration is automatic if you have compatible hardware.
+
+Apple Silicon Optimization: On M1, M2, or M3 Macs, Metal acceleration is automatically enabled. These chips have unified memory, so models can use both CPU and GPU memory seamlessly.
+
+For best performance on Apple Silicon:
+
+Use Q4_K_M or Q5_K_M quantization
+Ensure you have sufficient free RAM
+Close other memory-intensive applications
+Memory Management: Ensure you have sufficient RAM available. Check current memory usage:
+
+On Linux: free -h
+
+On macOS: vm_stat
+
+On Windows: Task Manager > Performance > Memory
+
+If you are running low on memory, consider:
+
+Using a smaller model
+Using more aggressive quantization (Q3 instead of Q4)
+Reducing context length
+Closing other applications
+                6.2 CONTEXT LENGTH OPTIMIZATION
+The context length determines how much text the model can consider. Longer contexts allow better understanding but require more memory and computation.
+
+For Reportr, the optimal context length depends on the task:
+
+For short summaries (default): num_ctx: 2048
+
+For medium summaries with more context: num_ctx: 4096
+
+For comprehensive analysis of long documents: num_ctx: 8192
+
+For maximum context (if hardware allows): num_ctx: 16384 or 32768
+
+Configure context length in config.yaml:
+
+llm_config:
+  provider: 'ollama'
+  model: 'llama2:13b'
+  num_ctx: 4096
+Or for llama.cpp server: ./server -m model.gguf -c 4096
+
+Memory usage increases quadratically with context length, so doubling the context length roughly quadruples memory usage.
+
+                6.3 BATCH PROCESSING OPTIMIZATION
+When Reportr processes multiple documents, it can batch LLM requests for better efficiency.
+
+Configure batch processing in config.yaml:
+
+report_config:
+  batch_size: 5
+  batch_timeout: 300
+This tells Reportr to process up to 5 documents at a time with a 5-minute timeout per batch.
+
+For local LLMs, smaller batch sizes are often better because:
+
+Local models process sequentially (no parallelism benefit)
+Smaller batches provide better progress feedback
+Memory usage is more predictable
+Recommended batch sizes:
+
+For CPU-only: batch_size: 1
+For GPU acceleration: batch_size: 3-5
+For high-end GPUs: batch_size: 5-10
+                6.4 CACHING AND PERSISTENCE
+Ollama and llama.cpp support KV cache persistence, which can speed up repeated queries with similar context.
+
+For llama.cpp, enable cache with: ./server -m model.gguf --cache-prompt
+
+For Ollama, caching is automatic.
+
+Reportr can also cache LLM responses to avoid regenerating identical summaries:
+
+llm_config:
+  cache_responses: true
+  cache_ttl: 86400  # 24 hours in seconds
+This caches LLM responses for 24 hours, so identical queries return cached results instantly.
+
+7. TROUBLESHOOTING
+
+This section addresses common issues when using local LLMs with Reportr.
+
+                7.1 OLLAMA ISSUES
+Issue: "Connection refused" error when trying to use Ollama Solution: Verify that Ollama is running: curl http://localhost:11434/api/tags
+
+If this fails, start Ollama: ollama serve
+
+Or on macOS/Windows, launch the Ollama application.
+
+Issue: "Model not found" error Solution: Verify that the model is downloaded: ollama list
+
+If the model is not listed, download it: ollama pull llama2:13b
+
+Ensure the model name in config.yaml exactly matches the name shown by "ollama list".
+
+Issue: Ollama runs out of memory Solution: Use a smaller model or more aggressive quantization: ollama pull llama2:7b
+
+Or use a more quantized version of your current model.
+
+Check available memory: free -h (Linux) vm_stat (macOS)
+
+Issue: Ollama is very slow Solution: Ensure GPU acceleration is working. Check Ollama logs: ollama logs
+
+If GPU is not being used, verify that you have compatible GPU drivers installed.
+
+For NVIDIA GPUs, install CUDA toolkit: https://developer.nvidia.com/cuda-downloads
+
+For AMD GPUs, install ROCm: https://rocmdocs.amd.com/
+
+Issue: Ollama generates poor quality responses Solution: Try a larger or less quantized model: ollama pull mixtral:8x7b
+
+Adjust temperature in config.yaml: temperature: 0.5 # Lower = more focused, higher = more creative
+
+Increase context length: num_ctx: 8192
+
+                7.2 LLAMA.CPP ISSUES
+Issue: llama.cpp server fails to start Solution: Check that the model file path is correct: ls -lh ~/llama-models/
+
+Verify the model file is not corrupted: file model.gguf
+
+Should show "GGUF model file" or similar.
+
+Check for port conflicts: lsof -i :8080 (Linux/macOS) netstat -ano | findstr :8080 (Windows)
+
+If another process is using port 8080, either stop that process or use a different port: ./server -m model.gguf --port 8081
+
+Issue: llama.cpp server crashes or runs out of memory Solution: Reduce context length: ./server -m model.gguf -c 2048
+
+Use a smaller or more quantized model.
+
+Reduce GPU layer offloading: ./server -m model.gguf -ngl 20
+
+Or disable GPU entirely: ./server -m model.gguf -ngl 0
+
+Issue: llama.cpp is not using GPU Solution: Verify that llama.cpp was built with GPU support: ./server --help | grep -i gpu
+
+Should show GPU-related options like -ngl.
+
+If not, rebuild with GPU support: make clean make LLAMA_CUBLAS=1 # For NVIDIA make LLAMA_METAL=1 # For Apple Silicon
+
+Verify GPU drivers are installed: nvidia-smi # For NVIDIA GPUs
+
+Issue: llama.cpp generates incomplete responses Solution: Increase max_tokens in config.yaml: max_tokens: 4000
+
+Or increase the server's default: ./server -m model.gguf -n 4000
+
+Issue: llama.cpp API returns errors Solution: Verify the API endpoint is correct. The llama.cpp server uses OpenAI- compatible API at /v1/chat/completions.
+
+Test with curl: curl http://localhost:8080/v1/chat/completions
+-H "Content-Type: application/json" 
+-d '{ "messages": [{"role": "user", "content": "Hello"}], "temperature": 0.7 }'
+
+If this fails, check server logs for errors.
+
+                7.3 REPORTR INTEGRATION ISSUES
+Issue: Reportr cannot connect to local LLM Solution: Verify the base_url in config.yaml is correct:
+
+For Ollama: base_url: 'http://localhost:11434'
+
+For llama.cpp: base_url: 'http://localhost:8080/v1'
+
+Test connectivity: curl http://localhost:11434/api/tags # Ollama curl http://localhost:8080/v1/models # llama.cpp
+
+Issue: Reportr generates poor quality reports with local LLM Solution: The model may be too small or too heavily quantized. Try a larger model: ollama pull mixtral:8x7b
+
+Adjust generation parameters in config.yaml: temperature: 0.6 top_p: 0.9 repeat_penalty: 1.2
+
+Increase context to provide more information to the model: num_ctx: 8192
+
+Issue: Local LLM is much slower than cloud models Solution: This is expected. Local models, especially on CPU, are significantly slower than cloud APIs.
+
+To improve speed:
+
+Use GPU acceleration if available
+Use a smaller model (7B instead of 13B)
+Use more aggressive quantization (Q3 instead of Q4)
+Reduce context length
+Reduce max_tokens
+For comparison:
+
+Cloud API (GPT-4): 1-3 seconds per summary
+Local GPU (Mixtral 8x7B): 10-30 seconds per summary
+Local CPU (Llama 2 13B): 60-180 seconds per summary
+Issue: Reportr times out waiting for local LLM Solution: Increase timeout in config.yaml: llm_config: timeout: 600 # 10 minutes
+
+Or use a faster model.
+
+8. COMPARISON: CLOUD VS LOCAL LLMs
+
+This section provides a comprehensive comparison to help you decide when to use cloud versus local LLMs.
+
+                8.1 QUALITY COMPARISON
+Summary Quality Rankings:
+
+Highest Quality:
+
+GPT-4 Turbo (cloud)
+Claude 3 Opus (cloud)
+Mixtral 8x7B Q6_K (local, requires 32GB+ RAM)
+High Quality: 4. GPT-3.5 Turbo (cloud) 5. Claude 3 Sonnet (cloud) 6. Mixtral 8x7B Q4_K (local, requires 24GB+ RAM) 7. Llama 2 70B Q4_K (local, requires 35GB+ RAM)
+
+Good Quality: 8. Llama 2 13B Q5_K (local, requires 10GB+ RAM) 9. Mistral 7B Q6_K (local, requires 6GB+ RAM) 10. CodeLlama 13B Q4_K (local, requires 7GB+ RAM)
+
+Acceptable Quality: 11. Llama 2 13B Q4_K (local, requires 7GB+ RAM) 12. Mistral 7B Q4_K (local, requires 4GB+ RAM)
+
+For professional research reports, we recommend using options 1-7. Options 8-10 are suitable for internal use or preliminary research. Options 11-12 are best for testing or very basic summarization.
+
+                8.2 COST COMPARISON
+Cloud Model Costs (approximate, as of February 2026):
+
+GPT-4 Turbo:
+
+Input: $0.01 per 1K tokens
+Output: $0.03 per 1K tokens
+Typical research report: $0.20-$0.80
+GPT-3.5 Turbo:
+
+Input: $0.0005 per 1K tokens
+Output: $0.0015 per 1K tokens
+Typical research report: $0.01-$0.05
+Claude 3 Opus:
+
+Input: $0.015 per 1K tokens
+Output: $0.075 per 1K tokens
+Typical research report: $0.30-$1.20
+Claude 3 Sonnet:
+
+Input: $0.003 per 1K tokens
+Output: $0.015 per 1K tokens
+Typical research report: $0.06-$0.25
+Local Model Costs:
+
+Initial hardware investment: $0-$5000 (depending on GPU)
+Per-query cost: $0.00 (electricity cost negligible)
+Break-even point: 100-10000 queries (depending on hardware and cloud model)
+Cost Analysis Examples:
+
+Light usage (10 queries/month with GPT-3.5):
+
+Monthly cloud cost: $0.10-$0.50
+Local hardware payback: Never (cloud is cheaper)
+Recommendation: Use cloud
+Moderate usage (100 queries/month with GPT-3.5):
+
+Monthly cloud cost: $1-$5
+Annual cloud cost: $12-$60
+Local hardware payback: 5-10 years (for CPU-only setup)
+Recommendation: Use cloud unless privacy is critical
+Heavy usage (100 queries/month with GPT-4):
+
+Monthly cloud cost: $20-$80
+Annual cloud cost: $240-$960
+Local hardware payback: 1-2 years (for mid-range GPU setup)
+Recommendation: Consider local LLM
+Very heavy usage (1000 queries/month with GPT-4):
+
+Monthly cloud cost: $200-$800
+Annual cloud cost: $2400-$9600
+Local hardware payback: 2-6 months (for high-end GPU setup)
+Recommendation: Strongly consider local LLM
+                8.3 SPEED COMPARISON
+Typical response times for generating a research summary:
+
+Cloud Models:
+
+GPT-4 Turbo: 2-5 seconds
+GPT-3.5 Turbo: 1-2 seconds
+Claude 3 Opus: 3-6 seconds
+Claude 3 Sonnet: 2-4 seconds
+Local Models (CPU only, modern desktop):
+
+Mixtral 8x7B Q4_K: Not practical (requires too much RAM)
+Llama 2 13B Q4_K: 120-300 seconds
+Llama 2 7B Q4_K: 60-120 seconds
+Mistral 7B Q4_K: 40-90 seconds
+Local Models (NVIDIA RTX 3090, 24GB VRAM):
+
+Mixtral 8x7B Q4_K: 15-30 seconds
+Llama 2 13B Q4_K: 8-15 seconds
+Llama 2 7B Q4_K: 4-8 seconds
+Mistral 7B Q4_K: 3-6 seconds
+Local Models (NVIDIA RTX 4090, 24GB VRAM):
+
+Mixtral 8x7B Q4_K: 10-20 seconds
+Llama 2 13B Q4_K: 5-10 seconds
+Llama 2 7B Q4_K: 3-5 seconds
+Mistral 7B Q4_K: 2-4 seconds
+Local Models (Apple M2 Max, 64GB unified memory):
+
+Mixtral 8x7B Q4_K: 20-40 seconds
+Llama 2 13B Q4_K: 10-20 seconds
+Llama 2 7B Q4_K: 5-10 seconds
+Mistral 7B Q4_K: 4-8 seconds
+Cloud models are generally faster, but high-end local hardware can approach cloud speeds, especially for smaller models.
+
+                8.4 DECISION MATRIX
+Use Cloud LLMs when:
+
+You need the highest quality results
+You have low to moderate usage volume
+You need fast response times
+You do not have powerful local hardware
+Privacy is not a critical concern
+You want minimal setup and maintenance
+You need access from multiple locations
+You want automatic model updates
+Use Local LLMs when:
+
+Privacy and data sovereignty are critical
+You have high usage volume (1000+ queries/month)
+You have powerful local hardware (especially GPU)
+You need offline operation capability
+You want zero per-query costs
+You need regulatory compliance (HIPAA, GDPR, etc.)
+You want complete control over model versions
+You can tolerate slower response times
+You have technical expertise for setup and maintenance
+Use Hybrid Approach when:
+
+You want to balance quality and cost
+You have variable usage patterns
+You want local LLM as primary with cloud fallback
+You want to use cloud for complex tasks, local for routine tasks
+You are transitioning from cloud to local
+You want to experiment with local while maintaining cloud backup
+                8.5 RECOMMENDED CONFIGURATIONS
+Configuration 1: Budget-Conscious Individual Researcher Hardware: Laptop or desktop with 16GB RAM, no GPU Model: Mistral 7B Q4_K via Ollama Expected performance: Acceptable quality, 60-90 second summaries Use case: Personal research, non-critical applications Cost: $0 per query after initial setup
+
+Configuration 2: Professional Researcher with Privacy Needs Hardware: Workstation with 32GB RAM, NVIDIA RTX 3060 or better Model: Llama 2 13B Q4_K via Ollama Expected performance: Good quality, 10-20 second summaries Use case: Professional research requiring data privacy Cost: $0 per query, hardware investment ~$1500-2500
+
+Configuration 3: Research Team with High Volume Hardware: Server with 64GB RAM, NVIDIA RTX 4090 or A100 Model: Mixtral 8x7B Q4_K via Ollama Expected performance: Very good quality, 10-20 second summaries Use case: Team conducting hundreds of queries monthly Cost: $0 per query, hardware investment ~$3000-8000
+
+Configuration 4: Hybrid for Flexibility Hardware: Desktop with 16GB RAM, modest GPU Primary: Llama 2 13B Q4_K via Ollama (for routine queries) Fallback: GPT-4 Turbo via OpenAI (for complex analysis) Expected performance: Variable quality, optimized cost Use case: Balancing quality, cost, and privacy Cost: ~$20-100/month depending on cloud usage
+
+Configuration 5: Maximum Quality Hardware: High-end workstation or cloud GPU instance Model: Mixtral 8x7B Q6_K or GPT-4 Turbo Expected performance: Excellent quality, fast responses Use case: Critical research requiring highest quality Cost: Either $0 per query (local) or $0.20-0.80 per query (cloud)
