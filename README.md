@@ -10,6 +10,5 @@ of files. Then it rates and summarizes them. The research results are eventually
 in an .md document.
 
 
-It is possible to configure Reportr to run using time schedules like "all two week on Monday at 8:00". The documents
-are  partitioned in chunks and stored in a vector database. So far Reportr is not using this database, but
+It is possible to configure Reportr to run periodically using time schedules like "all two week on Monday at 8:00". The documents are  partitioned in chunks and stored in a vector database. So far Reportr is not using this database, but
  can be easily extended with a query component that allows to ask questions about the stored content.
