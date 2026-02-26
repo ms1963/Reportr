@@ -1,0 +1,61 @@
+llm_config:
+  provider: ollama
+  model_name: mistral:latest
+  api_base: http://localhost:11434/v1
+  api_key: null
+  temperature: 0.1
+  max_tokens: 2048
+  context_window: 8192
+  fallback_providers:
+  - ollama
+  - local
+search_sources:
+- name: arxiv
+  enabled: true
+  max_results: 10
+  fetch_full_text: true
+- name: web_search
+  enabled: true
+  max_results: 10
+  fetch_full_text: true
+- name: google_scholar
+  enabled: true
+  max_results: 10
+  fetch_full_text: false
+- name: medium
+  enabled: true
+  max_results: 5
+  fetch_full_text: true
+report_config:
+  max_items: 10
+  relevance_threshold: 0.6
+  deduplication_similarity: 0.85
+  display_in_terminal: true
+  save_to_file: true
+rag_config:
+  vector_store: chromadb
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  collection_name: research_documents
+  persist_directory: ./data/vectorstore
+  chunk_size: 1000
+  chunk_overlap: 200
+  top_k: 5
+  batch_size: 32
+system_config:
+  log_level: INFO
+  log_file: ./logs/agentic_system.log
+  max_concurrent_searches: 4
+  max_concurrent_downloads: 10
+  max_concurrent_processing: 4
+  request_timeout: 30
+  retry_attempts: 3
+  retry_delay: 2
+  cache_enabled: true
+  cache_ttl: 3600
+  cache_dir: ./cache
+  rate_limit_calls: 10
+  rate_limit_window: 60
+  reports_dir: ./reports
+  scheduled_reports_dir: ./reports/scheduled
+  single_reports_dir: ./reports/single
+scheduled_tasks: []
